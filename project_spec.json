@@ -1,0 +1,52 @@
+{
+  "project_name": "thaqqaf_nafsak",
+  "display_name": "ثقف نفسك",
+  "version": "1.0.0",
+  "author": "Farid Mohammed & Dr. Ibrahim",
+  "description": "إضافة رسمية لـ NVDA لإدارة وتحكيم مسابقات المعلومات العامة للمكفوفين بواجهة ويب تفاعلية ميسرة وبنك أسئلة ومؤثرات صوتية للستيريو مكس",
+  "target_platform": "NVDA 2024.1+ / 2026.x (Python 3.11+)",
+  "architecture": {
+    "type": "NVDA Global Plugin + Embedded Web Console",
+    "host": "127.0.0.1",
+    "port_range": [8765, 8780],
+    "dependencies": "Zero External Dependencies (Standard Library Only)"
+  },
+  "constraints": {
+    "strict_100_lines_per_file": true,
+    "no_emoji_in_controls": true,
+    "screen_reader_first": true,
+    "keyboard_browse_mode_optimized": true
+  },
+  "supported_file_formats": ["docx", "txt", "md", "html"],
+  "rules": {
+    "round_1": {
+      "name": "الفقرة الأولى - أسئلة عامة",
+      "fields_per_match": 8,
+      "questions_per_team": 8,
+      "total_questions": 16,
+      "timer_seconds": 45,
+      "warning_seconds": 15,
+      "lifelines_per_team": 3,
+      "multiple_choice": true,
+      "choices_count": 4,
+      "points_per_correct": 1
+    },
+    "round_2": {
+      "name": "الفقرة الثانية - اختر مجالك",
+      "questions_per_team": 6,
+      "total_questions": 12,
+      "timer_seconds": 30,
+      "pre_select_fields": true,
+      "multiple_choice": false,
+      "points_per_correct": 1
+    },
+    "round_3": {
+      "name": "الفقرة الثالثة - أسئلة السرعة",
+      "questions_per_team": 4,
+      "total_questions": 8,
+      "timer_seconds": 15,
+      "multiple_choice": false,
+      "points_per_correct": 1
+    }
+  }
+}

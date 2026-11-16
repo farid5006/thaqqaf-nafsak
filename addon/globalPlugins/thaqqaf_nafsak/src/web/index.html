@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة تحكم مسابقة ثقف نفسك</title>
+  <style>
+    body {
+      font-family: Arial, Tahoma, sans-serif;
+      background-color: #0d1117;
+      color: #f0f6fc;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #161b22;
+      border: 2px solid #30363d;
+      border-radius: 8px;
+      padding: 24px;
+    }
+    h1, h2, h3 { color: #58a6ff; margin-top: 0; }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #30363d;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .score-box {
+      font-size: 1.3rem;
+      background: #21262d;
+      padding: 12px 20px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      font-weight: bold;
+    }
+    .question-panel {
+      background: #0d1117;
+      border: 2px solid #58a6ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .field-tag {
+      background: #1f6feb;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .timer-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #3fb950;
+      margin: 12px 0;
+      text-align: center;
+      font-family: monospace;
+    }
+    .timer-warning { color: #f85149 !important; }
+    .answer-box {
+      background-color: #0d2818;
+      border: 2px solid #3fb950;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 1.25rem;
+    }
+    .answer-label {
+      font-weight: bold;
+      color: #3fb950;
+      margin-left: 8px;
+    }
+    .answer-text {
+      font-weight: bold;
+      color: #ffffff;
+    }
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    button {
+      background-color: #238636;
+      color: #ffffff;
+      border: none;
+      padding: 14px 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 48px;
+    }
+    button:focus { outline: 3px solid #58a6ff; }
+    button.btn-danger { background-color: #da3633; }
+    button.btn-warning { background-color: #d29922; color: #000; }
+    button.btn-secondary { background-color: #30363d; }
+    button.btn-primary { background-color: #1f6feb; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .option-item {
+      background: #21262d;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      font-size: 1.1rem;
+    }
+    .option-correct {
+      border-color: #3fb950;
+      background: #0e2a14;
+      font-weight: bold;
+    }
+    .selection-box {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      background: #0d1117;
+      color: #f0f6fc;
+      border: 1px solid #30363d;
+      margin-top: 6px;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header-bar">
+      <div>
+        <h1 id="match-title">مسابقة ثقف نفسك</h1>
+        <p id="round-title" style="font-size: 1.2rem; margin: 4px 0;">فقرة أسئلة السرعة لتحديد الفريق البادئ</p>
+      </div>
+      <div class="score-box" aria-live="polite" id="scores-display">
+        النتيجة: 0 - 0
+      </div>
+    </header>
+
+    <section aria-labelledby="volume-label" style="margin-bottom: 16px;">
+      <label id="volume-label" for="vol-slider">مستوى صوت المؤثرات والستيريو مكس:</label>
+      <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.5" style="width: 200px; margin-right: 12px;" onchange="setVolume(this.value)">
+    </section>
+
+    <!-- لوحة السؤال والإجابة النموذجية -->
+    <section class="question-panel" aria-labelledby="question-text">
+      <div id="field-name" class="field-tag">تحديد الفريق البادئ</div>
+      <h2 id="question-text">جاري تحميل السؤال...</h2>
+      
+      <!-- الإجابة النموذجية معروضة لدكتور إبراهيم دائماً -->
+      <div id="answer-container" class="answer-box" aria-live="polite">
+        <span class="answer-label">الإجابة النموذجية:</span>
+        <span id="correct-answer-text" class="answer-text">جاري التحميل...</span>
+      </div>
+
+      <div id="timer-box" class="timer-display" aria-live="off">15</div>
+
+      <!-- خيارات الفقرة الأولى عند كشفها -->
+      <div id="options-area" class="options-grid" style="display: none;" aria-live="polite">
+        <div id="opt-1" class="option-item">أ) الخيار الأول</div>
+        <div id="opt-2" class="option-item">ب) الخيار الثاني</div>
+        <div id="opt-3" class="option-item">ج) الخيار الثالث</div>
+        <div id="opt-4" class="option-item">د) الخيار الرابع</div>
+      </div>
+    </section>
+
+    <!-- أزرار فقرة أسئلة السرعة لتحديد الفريق البادئ -->
+    <section id="starter-controls" aria-labelledby="starter-heading">
+      <h3 id="starter-heading" class="sr-only">تحديد الفريق البادئ</h3>
+      <div class="btn-group">
+        <button id="btn-starter-timer" onclick="toggleTimer(15)">تشغيل مؤقت السرعة (15 ثانية)</button>
+        <button id="btn-starter-a" onclick="setStarterTeam(currentState.team_a)">أجاب الفريق الأول (يبدأ أولاً)</button>
+        <button id="btn-starter-b" onclick="setStarterTeam(currentState.team_b)">أجاب الفريق الثاني (يبدأ أولاً)</button>
+        <button id="btn-starter-next" class="btn-secondary" onclick="nextStarterQuestion()">لم يجب أحد (سؤال سرعة آخر)</button>
+      </div>
+    </section>
+
+    <!-- لوحة اختيار مجالات الفقرة الثانية -->
+    <section id="round2-selection-panel" style="display: none;" aria-labelledby="r2-selection-heading">
+      <h3 id="r2-selection-heading">اختيار مجالات الفقرة الثانية (اختر مجالك)</h3>
+      <p style="font-size: 1.1rem;">اختر المجال المخصص لكل فريق من المجالات المتوفرة:</p>
+      <div class="selection-box">
+        <label id="lbl-starter-field" for="select-starter-field" style="font-weight: bold; font-size: 1.1rem;"></label>
+        <select id="select-starter-field" onchange="checkFieldSelection()"></select>
+      </div>
+      <div class="selection-box">
+        <label id="lbl-opp-field" for="select-opp-field" style="font-weight: bold; font-size: 1.1rem;"></label>
+        <select id="select-opp-field" onchange="checkFieldSelection()"></select>
+      </div>
+      <div id="r2-selection-alert" role="alert" style="color: #f85149; font-weight: bold; font-size: 1.15rem; margin-top: 10px; display: none;" aria-live="assertive"></div>
+      <button id="btn-confirm-r2" class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="confirmRound2Fields()">تأكيد المجالات وبدء أسئلة الفقرة الثانية</button>
+    </section>
+
+    <!-- أزرار جولات المسابقة العادية (الفقرة 1 والفقرة 2 والفقرة 3) -->
+    <section id="match-controls" style="display: none;" aria-labelledby="controls-heading">
+      <h3 id="controls-heading" class="sr-only">أزرار التحكم بالمباراة</h3>
+      <div class="btn-group">
+        <button id="btn-timer" onclick="toggleTimer()">تشغيل المؤقت</button>
+        <button id="btn-lifeline" class="btn-warning" onclick="requestLifeline()">طلب كشف الخيارات (متبقي: 3)</button>
+        <button id="btn-correct" onclick="submitAnswer(true)">إجابة صحيحة (احتساب نقطة)</button>
+        <button id="btn-wrong" class="btn-danger" onclick="submitAnswer(false)">إجابة خاطئة (تحويل السؤال)</button>
+        <button id="btn-next" class="btn-secondary" onclick="nextQuestion()">السؤال التالي</button>
+        <button id="btn-replace" class="btn-secondary" onclick="replaceQuestion()">استبدال السؤال (سؤال احتياطي)</button>
+      </div>
+    </section>
+
+    <!-- أزرار كسر التعادل -->
+    <section id="tie-controls" style="display: none;" aria-labelledby="tie-heading">
+      <h3 id="tie-heading" class="sr-only">أزرار كسر التعادل</h3>
+      <div class="btn-group">
+        <button onclick="toggleTimer(15)">تشغيل مؤقت كسر التعادل (15 ثانية)</button>
+        <button id="btn-tie-a" onclick="submitTieAnswer(currentState.team_a)">أجاب الفريق الأول (نقطة الفوز)</button>
+        <button id="btn-tie-b" onclick="submitTieAnswer(currentState.team_b)">أجاب الفريق الثاني (نقطة الفوز)</button>
+        <button class="btn-secondary" onclick="nextQuestion()">لم يجب أحد (سؤال آخر)</button>
+      </div>
+    </section>
+
+    <!-- شاشة نهاية المباراة والتقرير -->
+    <section id="finished-panel" style="display: none;" aria-labelledby="finished-heading">
+      <h3 id="finished-heading" class="sr-only">تقرير نهاية المباراة</h3>
+      <div class="btn-group">
+        <a href="/api/report" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 14px 18px; border-radius: 6px; font-size: 1.15rem; font-weight: bold; background-color: #238636; color: #ffffff;">عرض تقرير المباراة الشامل (HTML)</a>
+      </div>
+    </section>
+
+    <div id="announcer" class="sr-only" aria-live="polite"></div>
+  </main>
+
+  <script src="/timer_audio.js"></script>
+  <script>
+    let currentState = {};
+    let timerRunning = false;
+    let fieldsPopulated = false;
+
+    async function fetchState() {
+      try {
+        const res = await fetch('/api/state');
+        currentState = await res.json();
+        updateUI();
+      } catch (e) {
+        console.error('فشل جلب الحالة:', e);
+      }
+    }
+
+    function updateUI() {
+      if (!currentState.team_a) return;
+      document.getElementById('match-title').textContent = `مباراة: ${currentState.team_a} ضد ${currentState.team_b}`;
+      document.getElementById('scores-display').textContent = `النتيجة: ${currentState.team_a} (${currentState.scores[currentState.team_a] || 0}) - (${currentState.scores[currentState.team_b] || 0}) ${currentState.team_b}`;
+      
+      const phase = currentState.phase;
+      const isStarter = phase === 'starter_speed';
+      const isR2Select = phase === 'round_2_selection';
+      const isTie = phase === 'tie_breaker';
+      const isFinished = phase === 'finished';
+      const isNormal = !isStarter && !isR2Select && !isTie && !isFinished;
+
+      document.getElementById('starter-controls').style.display = isStarter ? 'block' : 'none';
+      document.getElementById('round2-selection-panel').style.display = isR2Select ? 'block' : 'none';
+      document.getElementById('match-controls').style.display = isNormal ? 'block' : 'none';
+      document.getElementById('tie-controls').style.display = isTie ? 'block' : 'none';
+      document.getElementById('finished-panel').style.display = isFinished ? 'block' : 'none';
+
+      // تحديث العناوين ونصوص الأزرار
+      if (isStarter) {
+        document.getElementById('round-title').textContent = 'فقرة أسئلة السرعة لتحديد الفريق البادئ';
+        document.getElementById('field-name').textContent = 'أسئلة السرعة الأولى';
+        document.getElementById('btn-starter-a').textContent = `أجاب ${currentState.team_a} (${currentState.team_a} يبدأ)`;
+        document.getElementById('btn-starter-b').textContent = `أجاب ${currentState.team_b} (${currentState.team_b} يبدأ)`;
+        document.getElementById('timer-box').style.display = 'block';
+        document.getElementById('answer-container').style.display = 'block';
+      } else if (isR2Select) {
+        document.getElementById('round-title').textContent = 'الفقرة الثانية: اختيار المجالات';
+        document.getElementById('field-name').textContent = 'اختيار مجالات الفرق';
+        document.getElementById('timer-box').style.display = 'none';
+        document.getElementById('answer-container').style.display = 'none';
+        populateFieldSelects();
+      } else if (isTie) {
+        document.getElementById('round-title').textContent = 'مرحلة كسر التعادل (سؤال سرعة حاسم)';
+        document.getElementById('field-name').textContent = 'كسر التعادل';
+        document.getElementById('btn-tie-a').textContent = `أجاب ${currentState.team_a} (نقطة الفوز لـ ${currentState.team_a})`;
+        document.getElementById('btn-tie-b').textContent = `أجاب ${currentState.team_b} (نقطة الفوز لـ ${currentState.team_b})`;
+        document.getElementById('timer-box').style.display = 'block';
+        document.getElementById('answer-container').style.display = 'block';
+      } else if (isFinished) {
+        document.getElementById('round-title').textContent = 'انتهت المباراة';
+        document.getElementById('field-name').textContent = 'النتيجة النهائية';
+        document.getElementById('timer-box').style.display = 'none';
+        document.getElementById('answer-container').style.display = 'none';
+      } else {
+        const roundNames = {
+          'round_1': 'الفقرة الأولى: الأسئلة العامة',
+          'round_2': 'الفقرة الثانية: اختر مجالك',
+          'round_3': 'الفقرة الثالثة: أسئلة السرعة'
+        };
+        const curQIdx = (currentState.q_idx || 0) + 1;
+        const totalQ = currentState.queue_len || 0;
+        const progress = totalQ > 0 ? ` (${curQIdx} من ${totalQ})` : '';
+        document.getElementById('round-title').textContent = (roundNames[phase] || phase) + progress;
+        document.getElementById('field-name').textContent = `المجال: ${(currentState.current_question && currentState.current_question.field) || 'عام'} - الدور لـ: ${currentState.active_team} ${currentState.is_rebound ? '(سؤال محول)' : ''}`;
+        document.getElementById('timer-box').style.display = 'block';
+        document.getElementById('answer-container').style.display = 'block';
+      }
+
+      // نص السؤال والإجابة النموذجية
+      const q = currentState.current_question || {};
+      document.getElementById('question-text').textContent = q.question || 'لا يوجد سؤال حالياً';
+      
+      const ansText = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : '');
+      document.getElementById('correct-answer-text').textContent = ansText ? ansText : 'غير محددة في الملف';
+
+      // أزرار التحكم وقواعد الفقرات
+      if (isNormal) {
+        const isR1 = phase === 'round_1';
+        const remLifelines = currentState.lifelines ? currentState.lifelines[currentState.active_team] : 3;
+        const lifelineBtn = document.getElementById('btn-lifeline');
+        lifelineBtn.style.display = isR1 ? 'inline-block' : 'none';
+        lifelineBtn.textContent = `طلب كشف الخيارات (متبقي لـ ${currentState.active_team}: ${remLifelines})`;
+        lifelineBtn.disabled = remLifelines <= 0 || currentState.is_rebound || currentState.options_revealed || !isR1;
+
+        const wrongBtn = document.getElementById('btn-wrong');
+        wrongBtn.textContent = currentState.is_rebound ? 'إجابة خاطئة (السؤال التالي)' : 'إجابة خاطئة (تحويل السؤال)';
+
+        const timerBtn = document.getElementById('btn-timer');
+        const dur = phase === 'round_2' ? 30 : (phase === 'round_3' ? 15 : 45);
+        if (!timerRunning) {
+          timerBtn.textContent = `تشغيل المؤقت (${dur} ثانية)`;
+        }
+
+        const optsArea = document.getElementById('options-area');
+        if (isR1 && currentState.options_revealed && q.choices && q.choices.length === 4) {
+          optsArea.style.display = 'grid';
+          for (let i = 0; i < 4; i++) {
+            const el = document.getElementById(`opt-${i+1}`);
+            el.textContent = `${['أ', 'ب', 'ج', 'د'][i]}) ${q.choices[i]}`;
+            if (i === q.correct_index) el.className = 'option-item option-correct';
+            else el.className = 'option-item';
+          }
+        } else {
+          optsArea.style.display = 'none';
+        }
+      } else {
+        document.getElementById('options-area').style.display = 'none';
+      }
+    }
+
+    function populateFieldSelects() {
+      if (fieldsPopulated) return;
+      const stTeam = currentState.starting_team;
+      const oppTeam = currentState.team_b === stTeam ? currentState.team_a : currentState.team_b;
+      document.getElementById('lbl-starter-field').textContent = `مجال الفريق البادئ (${stTeam}):`;
+      document.getElementById('lbl-opp-field').textContent = `مجال الفريق المنافس (${oppTeam}):`;
+
+      const sel1 = document.getElementById('select-starter-field');
+      const sel2 = document.getElementById('select-opp-field');
+      sel1.innerHTML = '';
+      sel2.innerHTML = '';
+
+      const fields = currentState.r2_available_fields || [];
+      fields.forEach((f, idx) => {
+        const opt1 = document.createElement('option');
+        opt1.value = f; opt1.textContent = f;
+        sel1.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = f; opt2.textContent = f;
+        if (idx === 1 || (fields.length === 1 && idx === 0)) opt2.selected = true;
+        sel2.appendChild(opt2);
+      });
+      fieldsPopulated = true;
+      checkFieldSelection();
+    }
+
+    function checkFieldSelection() {
+      const sel1 = document.getElementById('select-starter-field');
+      const sel2 = document.getElementById('select-opp-field');
+      const alertBox = document.getElementById('r2-selection-alert');
+      const btn = document.getElementById('btn-confirm-r2');
+      if (!sel1 || !sel2) return true;
+      const f1 = sel1.value;
+      const f2 = sel2.value;
+      const counts = currentState.r2_field_counts || {};
+      if (f1 === f2) {
+        const available = counts[f1] || 0;
+        if (available < 12) {
+          alertBox.style.display = 'block';
+          alertBox.textContent = `تنبيه: مجال [${f1}] يحتوي على ${available} أسئلة فقط (يكفي فريقاً واحداً). لاختياره لكلا الفريقين معاً يجب توفير 12 سؤالاً في الملف (6 لكل فريق دون تكرار). يرجى اختيار مجال مختلف لأحد الفريقين.`;
+          btn.disabled = true;
+          return false;
+        }
+      }
+      alertBox.style.display = 'none';
+      alertBox.textContent = '';
+      btn.disabled = false;
+      return true;
+    }
+
+    async function confirmRound2Fields() {
+      if (!checkFieldSelection()) return;
+      const f1 = document.getElementById('select-starter-field').value;
+      const f2 = document.getElementById('select-opp-field').value;
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'choose_fields', field_starter: f1, field_opp: f2})
+      });
+      fieldsPopulated = false;
+      fetchState();
+    }
+
+    async function setStarterTeam(team) {
+      stopTimer();
+      timerRunning = false;
+      playCorrect();
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'set_starter', team: team})
+      });
+      fetchState();
+    }
+
+    async function nextStarterQuestion() {
+      stopTimer();
+      timerRunning = false;
+      playWrong();
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'next_starter'})
+      });
+      fetchState();
+    }
+
+    function toggleTimer(customDur) {
+      const isStarter = currentState.phase === 'starter_speed';
+      const btn = isStarter ? document.getElementById('btn-starter-timer') : document.getElementById('btn-timer');
+      const box = document.getElementById('timer-box');
+      if (!timerRunning) {
+        let dur = customDur || (currentState.phase === 'round_2' ? 30 : (currentState.phase === 'round_3' ? 15 : 45));
+        startTimer(dur, (sec) => {
+          box.textContent = sec;
+          if (sec <= 15) box.className = 'timer-display timer-warning';
+          else box.className = 'timer-display';
+        }, () => {
+          btn.textContent = 'إعادة تشغيل المؤقت';
+          timerRunning = false;
+        });
+        timerRunning = true;
+        btn.textContent = 'إيقاف المؤقت مؤقتاً';
+      } else {
+        if (isPaused) {
+          resumeTimer();
+          btn.textContent = 'إيقاف المؤقت مؤقتاً';
+        } else {
+          pauseTimer();
+          btn.textContent = 'استئناف المؤقت';
+        }
+      }
+    }
+
+    async function requestLifeline() {
+      pauseTimer();
+      document.getElementById('btn-timer').textContent = 'استئناف المؤقت';
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'lifeline', team: currentState.active_team})
+      });
+      fetchState();
+    }
+
+    async function submitAnswer(isCorrect) {
+      stopTimer();
+      timerRunning = false;
+      if (isCorrect) playCorrect();
+      else playWrong();
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: isCorrect ? 'correct' : 'wrong', team: currentState.active_team})
+      });
+      fetchState();
+    }
+
+    async function submitTieAnswer(winnerTeam) {
+      stopTimer();
+      timerRunning = false;
+      playCorrect();
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'correct', team: winnerTeam})
+      });
+      fetchState();
+    }
+
+    async function replaceQuestion() {
+      stopTimer();
+      timerRunning = false;
+      document.getElementById('btn-timer').textContent = 'تشغيل المؤقت';
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'replace_question'})
+      });
+      fetchState();
+    }
+
+    async function nextQuestion() {
+      stopTimer();
+      timerRunning = false;
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'next'})
+      });
+      fetchState();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+      else if (e.key === 'h' || e.key === 'H' || e.key === 'ا') { requestLifeline(); }
+      else if (e.key === '1') { submitAnswer(true); }
+      else if (e.key === '2') { submitAnswer(false); }
+      else if (e.key === 'n' || e.key === 'N' || e.key === 'ى') { nextQuestion(); }
+    });
+
+    setInterval(fetchState, 1500);
+    fetchState();
+  </script>
+</body>
+</html>
