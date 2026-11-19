@@ -1,5 +1,7 @@
-// محرك المؤثرات الصوتية والمؤقت الزمني عبر Web Audio API
+// محرك المؤثرات الصوتية والمؤقت الزمني عبر Web Audio والأصوات الواقعية
 let audioCtx = null, masterGain = null;
+let correctAudio = new Audio('/audio/applause.mp3');
+let wrongAudio = new Audio('/audio/wrong.mp3');
 
 function initAudio() {
   if (!audioCtx) {
@@ -14,7 +16,12 @@ function initAudio() {
 
 function setVolume(val) {
   if (!masterGain) initAudio();
-  masterGain.gain.value = Math.max(0, Math.min(1, val));
+  const v = Math.max(0, Math.min(1, val));
+  masterGain.gain.value = v;
+  const aCorr = document.getElementById('audio-correct') || correctAudio;
+  const aWr = document.getElementById('audio-wrong') || wrongAudio;
+  if (aCorr) aCorr.volume = v;
+  if (aWr) aWr.volume = v;
 }
 
 function playTone(freq, type, duration, delay = 0) {
@@ -31,20 +38,65 @@ function playTone(freq, type, duration, delay = 0) {
   osc.stop(audioCtx.currentTime + delay + duration);
 }
 
-function playTick() { playTone(800, 'sine', 0.08); }
-function playWarning() { playTone(1200, 'square', 0.15); }
+// تدرج حدة التايمر كل 15 ثانية (هادئ 520Hz، ثم متوسط 780Hz، ثم حاد 1100Hz)
+function playTick(sec) {
+  let freq = 520;
+  if (sec <= 15) {
+    freq = 1100;
+  } else if (sec <= 30) {
+    freq = 780;
+  }
+  playTone(freq, 'sine', 0.08);
+}
+
+function playWarning() {
+  playTone(1100, 'square', 0.12);
+  setTimeout(() => playTone(1200, 'square', 0.15), 140);
+}
+
 function playTimeout() {
   playTone(250, 'sawtooth', 0.8);
   setTimeout(() => playTone(180, 'sawtooth', 1.0), 200);
 }
-function playCorrect() {
-  playTone(523.25, 'triangle', 0.2);
-  playTone(659.25, 'triangle', 0.2, 0.15);
-  playTone(783.99, 'triangle', 0.4, 0.3);
+
+function playChime() {
+  playTone(523.25, 'sine', 0.18, 0);
+  playTone(659.25, 'sine', 0.22, 0.12);
+  playTone(783.99, 'sine', 0.35, 0.24);
 }
+
+// تشغيل تصفيق حار واقعي وحقيقي للمسابقات
+function playCorrect() {
+  initAudio();
+  try {
+    const el = document.getElementById('audio-correct') || correctAudio;
+    if (el) {
+      el.pause();
+      el.currentTime = 0;
+      el.volume = masterGain ? masterGain.gain.value : 0.6;
+      const p = el.play();
+      if (p !== undefined) p.catch(e => console.log('Correct audio error:', e));
+    }
+  } catch (e) {
+    console.log('Error playing correct audio:', e);
+  }
+}
+
+// تشغيل موسيقى الخسارة الحقيقية لمسابقات التلفزيون (Sad Trombone)
 function playWrong() {
-  playTone(350, 'sawtooth', 0.25);
-  playTone(280, 'sawtooth', 0.35, 0.15);
+  initAudio();
+  try {
+    const el = document.getElementById('audio-wrong') || wrongAudio;
+    if (el) {
+      el.pause();
+      el.currentTime = 0;
+      el.volume = masterGain ? masterGain.gain.value : 0.6;
+      const p = el.play();
+      if (p !== undefined) p.catch(e => console.log('Wrong audio error:', e));
+    }
+  } catch (e) {
+    console.log('Error playing wrong audio:', e);
+  }
 }
 
 let timerInterval = null, remainingSeconds = 45, isPaused = false;
@@ -61,7 +113,7 @@ function startTimer(duration, onTick, onTimeout) {
   timerInterval = setInterval(() => {
     if (isPaused) return;
     remainingSeconds--;
-    playTick();
+    playTick(remainingSeconds);
     if (remainingSeconds === 15) playWarning();
     if (onTickCallback) onTickCallback(remainingSeconds);
 

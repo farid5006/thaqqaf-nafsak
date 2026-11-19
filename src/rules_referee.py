@@ -6,9 +6,9 @@ MatchState = Any
 class MatchReferee:
     """حكم وقواعد مسابقة ثقف نفسك."""
 
-    ROUND_1_LIMIT = 16
+    ROUND_1_LIMIT = 24
     ROUND_2_LIMIT = 12
-    ROUND_3_LIMIT = 8
+    ROUND_3_LIMIT = 12
 
     @staticmethod
     def _get_teams(state: MatchState) -> Tuple[str, str]:
@@ -55,7 +55,7 @@ class MatchReferee:
 
         if current_round == "round_3":
             if nxt < self.ROUND_3_LIMIT:
-                return (starter if nxt < 4 else opponent), "round_3", False
+                return (starter if nxt < 6 else opponent), "round_3", False
             return "", "round_3", True
 
         return "", current_round, True

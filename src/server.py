@@ -6,8 +6,10 @@ MIME = {
     ".css": "text/css; charset=utf-8",
     ".js": "application/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
 }
-
 
 class MatchServer:
     def __init__(self, state=None, web_dir=None, port=8765, on_action=None) -> None:
@@ -20,22 +22,19 @@ class MatchServer:
 
     def _make_handler(self):
         srv = self
-
         class Handler(http.server.BaseHTTPRequestHandler):
             def log_message(self, *a) -> None: pass
-
             def _send(self, code: int, ctype: str, data: bytes) -> None:
-                self.send_response(code)
-                self.send_header("Content-Type", ctype)
+                self.send_response(code); self.send_header("Content-Type", ctype)
                 self.send_header("Content-Length", str(len(data)))
-                self.end_headers()
-                self.wfile.write(data)
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache"); self.send_header("Expires", "0")
+                self.end_headers(); self.wfile.write(data)
 
             def do_GET(self) -> None:
                 path = urllib.parse.unquote(urllib.parse.urlparse(self.path).path)
                 if path == "/api/state":
-                    with srv.lock:
-                        return self._send(200, MIME[".json"], json.dumps(srv.state).encode("utf-8"))
+                    with srv.lock: return self._send(200, MIME[".json"], json.dumps(srv.state).encode("utf-8"))
                 if path == "/api/report":
                     with srv.lock:
                         rep = srv.state.get("html_report") or "<h1>لا يوجد تقرير حالياً</h1>"
@@ -48,15 +47,15 @@ class MatchServer:
                     self._send(200, MIME.get(ext, "application/octet-stream"), f.read())
 
             def do_POST(self) -> None:
-                if urllib.parse.urlparse(self.path).path != "/api/action":
-                    return self.send_error(404)
-                ln = int(self.headers.get("Content-Length", 0))
-                body = json.loads(self.rfile.read(ln).decode("utf-8") or "{}")
-                with srv.lock:
-                    if srv.on_action:
-                        srv.on_action(body.get("action", ""), body, srv.state)
-                    self._send(200, MIME[".json"], json.dumps(srv.state).encode("utf-8"))
-
+                if urllib.parse.urlparse(self.path).path != "/api/action": return self.send_error(404)
+                try:
+                    ln = int(self.headers.get("Content-Length", 0))
+                    body = json.loads(self.rfile.read(ln).decode("utf-8") or "{}")
+                    with srv.lock:
+                        if srv.on_action: srv.on_action(body.get("action", ""), body, srv.state)
+                        self._send(200, MIME[".json"], json.dumps(srv.state).encode("utf-8"))
+                except Exception as err:
+                    self._send(500, MIME[".json"], json.dumps({"error": str(err)}).encode("utf-8"))
         return Handler
 
     def start(self) -> str:
@@ -73,12 +72,11 @@ class MatchServer:
 
     def stop(self) -> None:
         if self._server:
-            self._server.shutdown()
-            self._server.server_close()
+            try:
+                self._server.shutdown(); self._server.server_close()
+            except Exception: pass
             self._server = None
         if self._thread:
-            self._thread.join(timeout=1)
-            self._thread = None
+            self._thread.join(timeout=1); self._thread = None
 
-    def get_url(self) -> str:
-        return f"http://127.0.0.1:{self.port}"
+    def get_url(self) -> str: return f"http://127.0.0.1:{self.port}"

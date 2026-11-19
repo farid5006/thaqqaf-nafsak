@@ -4,9 +4,7 @@ from typing import Any, Dict, List, Optional
 
 def normalize_text(text: str) -> str:
     t = re.sub(r"[\u064B-\u065F\u0670]", "", text or "")
-    t = re.sub(r"[أإآ]", "ا", t)
-    t = re.sub(r"[ة]", "ه", t)
-    t = re.sub(r"[ى]", "ي", t)
+    t = re.sub(r"[أإآ]", "ا", t); t = re.sub(r"[ة]", "ه", t); t = re.sub(r"[ى]", "ي", t)
     t = re.sub(r"[؟?.,:!_\-؛]", " ", t)
     return " ".join(t.lower().split())
 
@@ -22,8 +20,7 @@ def load_json_file(file_path: str, default: Any) -> Any:
     if not os.path.exists(file_path): return default
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            raw = f.read().strip()
-            return json.loads(raw) if raw else default
+            raw = f.read().strip(); return json.loads(raw) if raw else default
     except Exception: return default
 
 def save_json_file(data: Any, file_path: str) -> None:
@@ -54,13 +51,28 @@ def get_unused_questions(bank_data: Dict[str, Any], round_key: str, field: Optio
         return [q for q in q_list if (not round_key or q.get("round_key") == round_key) and (not field or q.get("field") == field) and q.get("id") not in used]
     return []
 
+def mark_question_used(bank_data: Dict[str, Any], q_id: str, match_id: str) -> None:
+    mark_questions_used(bank_data, [q_id], match_id)
+
 def mark_questions_used(bank_data: Dict[str, Any], q_ids: List[str], match_id: str) -> None:
     used = bank_data.setdefault("used", {})
     now = datetime.now(timezone.utc).isoformat()
-    for q_id in q_ids: used[q_id] = {"match_id": match_id, "used_at": now}
+    for qid in q_ids:
+        if qid: used[qid] = {"match_id": match_id, "used_at": now}
 
-def mark_question_used(bank_data: Dict[str, Any], q_id: str, match_id: str) -> None:
-    mark_questions_used(bank_data, [q_id], match_id)
+def save_active_match(state_dict: Dict[str, Any]) -> None:
+    save_json_file(state_dict, os.path.join(get_data_dir(), "active_match.json"))
+
+def load_active_match() -> Optional[Dict[str, Any]]:
+    p = os.path.join(get_data_dir(), "active_match.json")
+    d = load_json_file(p, None)
+    return d if isinstance(d, dict) and d.get("phase") != "finished" else None
+
+def clear_active_match() -> None:
+    p = os.path.join(get_data_dir(), "active_match.json")
+    if os.path.exists(p):
+        try: os.remove(p)
+        except Exception: pass
 
 def save_match_history(match_summary: Dict[str, Any]) -> None:
     p = os.path.join(get_data_dir(), "matches_history.json")

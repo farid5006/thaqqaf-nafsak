@@ -15,13 +15,13 @@ class TestStage2(unittest.TestCase):
         state = MatchState(team_a="النور", team_b="الأمل")
         state.set_starting_team("النور")
         self.assertEqual(state.scores["النور"], 0)
-        self.assertEqual(state.lifelines["النور"], 3)
+        self.assertEqual(state.lifelines["النور"], 4)
         self.assertEqual(state.get_timer_duration(), 45)
 
         # خصم مساعدة
         success = state.consume_lifeline("النور")
         self.assertTrue(success)
-        self.assertEqual(state.lifelines["النور"], 2)
+        self.assertEqual(state.lifelines["النور"], 3)
 
         # تحويل السؤال
         state.pass_question_to_opponent()
@@ -64,9 +64,9 @@ class TestStage2(unittest.TestCase):
             "rebounds": 3,
             "lifelines": 4,
             "rounds": [
-                {"name": "الفقرة الأولى", "score_a": 4, "score_b": 3, "questions": 16, "rebounds": 2, "lifelines": 4},
+                {"name": "الفقرة الأولى", "score_a": 4, "score_b": 3, "questions": 24, "rebounds": 2, "lifelines": 4},
                 {"name": "الفقرة الثانية", "score_a": 4, "score_b": 3, "questions": 12, "rebounds": 1, "lifelines": 0},
-                {"name": "الفقرة الثالثة", "score_a": 2, "score_b": 2, "questions": 8, "rebounds": 0, "lifelines": 0},
+                {"name": "الفقرة الثالثة", "score_a": 2, "score_b": 2, "questions": 12, "rebounds": 0, "lifelines": 0},
             ]
         }
         text_rep = generate_text_report(match_data)

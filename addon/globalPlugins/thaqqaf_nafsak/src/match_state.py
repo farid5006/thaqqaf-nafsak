@@ -1,15 +1,13 @@
 import uuid
 from typing import Any, Dict, List, Optional
-try:
-    from .queue_builder import build_r1_queue, build_r2_queue, advance_match_phase; from .question_replacer import find_and_swap_question
-except ImportError:
-    from queue_builder import build_r1_queue, build_r2_queue, advance_match_phase; from question_replacer import find_and_swap_question
+try: from .queue_builder import build_r1_queue, build_r2_queue, advance_match_phase; from .question_replacer import find_and_swap_question
+except ImportError: from queue_builder import build_r1_queue, build_r2_queue, advance_match_phase; from question_replacer import find_and_swap_question
 
 class MatchState:
     def __init__(self, team_a: str, team_b: str, q_data: Optional[Dict[str, Any]] = None, match_id: Optional[str] = None, used_ids=None, tournament: Optional[str] = None, rep_pct: int = 0):
         self.match_id, self.team_a, self.team_b, self.tournament = match_id or str(uuid.uuid4())[:8], team_a, team_b, (tournament or "")
         self.rep_pct, self.starting_team, self.active_team = rep_pct, team_a, team_a
-        self.scores, self.lifelines = {team_a: 0, team_b: 0}, {team_a: 3, team_b: 3}
+        self.scores, self.lifelines = {team_a: 0, team_b: 0}, {team_a: 4, team_b: 4}
         self.q_data = q_data or {"starter_speed": [], "round_1": {}, "round_2": {}, "round_3": []}
         self.used_ids, self.phase = set(used_ids or []), ("starter_speed" if q_data and q_data.get("starter_speed") else "round_1")
         self.starter_idx, self.queue, self.q_idx, self.rebounds, self.html_report = 0, [], 0, 0, ""
@@ -87,9 +85,10 @@ class MatchState:
         if self.phase == "tie_breaker":
             if is_correct: advance_match_phase(self)
             else:
-                p = self.q_data.get("starter_speed", []) + self.q_data.get("round_3", [])
-                self.starter_idx = (self.starter_idx + 1) % len(p) if p else 0
-                self.current_question = p[self.starter_idx] if p else None
+                self.pass_question_to_opponent(); p = self.q_data.get("starter_speed", []) + self.q_data.get("round_3", [])
+                self.starter_idx = (self.starter_idx + 1) % len(p) if p else 0; self.current_question = p[self.starter_idx] if p else None
+                qid = self._qid(self.current_question)
+                if qid and qid not in self.asked_q_ids: self.asked_q_ids.append(qid)
             return
         self.q_idx += 1; self.load_current_from_queue()
 

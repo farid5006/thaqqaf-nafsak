@@ -45,6 +45,12 @@
       padding: 20px;
       margin-bottom: 20px;
     }
+    .question-title:focus {
+      outline: 3px solid #f0883e;
+      background: #21262d;
+      border-radius: 4px;
+      padding: 6px;
+    }
     .field-tag {
       background: #1f6feb;
       color: #fff;
@@ -116,6 +122,10 @@
       border: 1px solid #30363d;
       font-size: 1.1rem;
     }
+    .option-item:focus {
+      outline: 3px solid #f0883e;
+      background: #1f2937;
+    }
     .option-correct {
       border-color: #3fb950;
       background: #0e2a14;
@@ -138,6 +148,16 @@
       border: 1px solid #30363d;
       margin-top: 6px;
     }
+    .shortcuts-help {
+      background: #161b22;
+      border: 1px dashed #30363d;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #8b949e;
+    }
+    .shortcuts-help strong { color: #58a6ff; }
     .sr-only {
       position: absolute;
       width: 1px;
@@ -157,35 +177,35 @@
         <h1 id="match-title">مسابقة ثقف نفسك</h1>
         <p id="round-title" style="font-size: 1.2rem; margin: 4px 0;">فقرة أسئلة السرعة لتحديد الفريق البادئ</p>
       </div>
-      <div class="score-box" aria-live="polite" id="scores-display">
+      <div class="score-box" id="scores-display">
         النتيجة: 0 - 0
       </div>
     </header>
 
     <section aria-labelledby="volume-label" style="margin-bottom: 16px;">
       <label id="volume-label" for="vol-slider">مستوى صوت المؤثرات والستيريو مكس:</label>
-      <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.5" style="width: 200px; margin-right: 12px;" onchange="setVolume(this.value)">
+      <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.6" style="width: 200px; margin-right: 12px;" onchange="setVolume(this.value)">
     </section>
 
     <!-- لوحة السؤال والإجابة النموذجية -->
     <section class="question-panel" aria-labelledby="question-text">
       <div id="field-name" class="field-tag">تحديد الفريق البادئ</div>
-      <h2 id="question-text">جاري تحميل السؤال...</h2>
+      <h2 id="question-text" class="question-title" tabindex="-1">جاري تحميل السؤال...</h2>
       
-      <!-- الإجابة النموذجية معروضة لدكتور إبراهيم دائماً -->
-      <div id="answer-container" class="answer-box" aria-live="polite">
+      <!-- الإجابة النموذجية معروضة لدكتور إبراهيم بدون aria-live لمنع قفز القارئ إليها -->
+      <div id="answer-container" class="answer-box">
         <span class="answer-label">الإجابة النموذجية:</span>
         <span id="correct-answer-text" class="answer-text">جاري التحميل...</span>
       </div>
 
-      <div id="timer-box" class="timer-display" aria-live="off">15</div>
+      <div id="timer-box" class="timer-display">15</div>
 
       <!-- خيارات الفقرة الأولى عند كشفها -->
-      <div id="options-area" class="options-grid" style="display: none;" aria-live="polite">
-        <div id="opt-1" class="option-item">أ) الخيار الأول</div>
-        <div id="opt-2" class="option-item">ب) الخيار الثاني</div>
-        <div id="opt-3" class="option-item">ج) الخيار الثالث</div>
-        <div id="opt-4" class="option-item">د) الخيار الرابع</div>
+      <div id="options-area" class="options-grid" style="display: none;">
+        <div id="opt-1" class="option-item" tabindex="-1">أ) الخيار الأول</div>
+        <div id="opt-2" class="option-item" tabindex="-1">ب) الخيار الثاني</div>
+        <div id="opt-3" class="option-item" tabindex="-1">ج) الخيار الثالث</div>
+        <div id="opt-4" class="option-item" tabindex="-1">د) الخيار الرابع</div>
       </div>
     </section>
 
@@ -221,10 +241,9 @@
       <h3 id="controls-heading" class="sr-only">أزرار التحكم بالمباراة</h3>
       <div class="btn-group">
         <button id="btn-timer" onclick="toggleTimer()">تشغيل المؤقت</button>
-        <button id="btn-lifeline" class="btn-warning" onclick="requestLifeline()">طلب كشف الخيارات (متبقي: 3)</button>
+        <button id="btn-lifeline" class="btn-warning" onclick="handleChoicesShortcut()">طلب كشف الخيارات (متبقي: 4)</button>
         <button id="btn-correct" onclick="submitAnswer(true)">إجابة صحيحة (احتساب نقطة)</button>
         <button id="btn-wrong" class="btn-danger" onclick="submitAnswer(false)">إجابة خاطئة (تحويل السؤال)</button>
-        <button id="btn-next" class="btn-secondary" onclick="nextQuestion()">السؤال التالي</button>
         <button id="btn-replace" class="btn-secondary" onclick="replaceQuestion()">استبدال السؤال (سؤال احتياطي)</button>
       </div>
     </section>
@@ -236,7 +255,7 @@
         <button onclick="toggleTimer(15)">تشغيل مؤقت كسر التعادل (15 ثانية)</button>
         <button id="btn-tie-a" onclick="submitTieAnswer(currentState.team_a)">أجاب الفريق الأول (نقطة الفوز)</button>
         <button id="btn-tie-b" onclick="submitTieAnswer(currentState.team_b)">أجاب الفريق الثاني (نقطة الفوز)</button>
-        <button class="btn-secondary" onclick="nextQuestion()">لم يجب أحد (سؤال آخر)</button>
+        <button class="btn-secondary" onclick="replaceQuestion()">سؤال آخر لكسر التعادل</button>
       </div>
     </section>
 
@@ -248,22 +267,180 @@
       </div>
     </section>
 
-    <div id="announcer" class="sr-only" aria-live="polite"></div>
+    <!-- دليل الاختصارات السريعة -->
+    <footer class="shortcuts-help">
+      <strong>اختصارات لوحة المفاتيح لدكتور إبراهيم:</strong><br>
+      • <strong>Ctrl + ` / ذ</strong>: نطق بيانات السؤال كاملة (الفقرة، المجال، دور الفريق، رقم سؤال الفريق، رقم السؤال في الفقرة، رقم السؤال العام في المباراة).<br>
+      • <strong>Ctrl + 1</strong>: نطق نص السؤال الحالي ونقل التركيز عليه.<br>
+      • <strong>Ctrl + 2</strong>: نطق الإجابة النموذجية.<br>
+      • <strong>Ctrl + 3</strong> (أو مسافة): تشغيل / إيقاف مؤقت / استئناف التايمر.<br>
+      • <strong>Ctrl + 4</strong> (أو حرف ا): طلب كشف الخيارات وإيقاف التايمر لأول مرة، وإعادة قراءة الخيارات كاملة في كل ضغطة تالية دون لمس التايمر.<br>
+      • <strong>Ctrl + 5</strong>: في أسئلة السرعة الأولى (أجاب الفريق الأول) / في جولات المسابقة (إجابة صحيحة واحتساب نقطة).<br>
+      • <strong>Ctrl + 6</strong>: في أسئلة السرعة الأولى (أجاب الفريق الثاني) / في جولات المسابقة (إجابة خاطئة وتحويل السؤال).<br>
+      • <strong>Ctrl + 7</strong>: في أسئلة السرعة الأولى فقط (لم يجب أحد - سحب سؤال سرعة آخر).<br>
+    </footer>
+
+    <!-- منطقة الإعلانات الحية لقارئ الشاشة NVDA -->
+    <div id="announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
   </main>
 
-  <script src="/timer_audio.js"></script>
+  <!-- عناصر الصوت الحقيقي للمسابقات -->
+  <audio id="audio-correct" preload="auto" src="/audio/applause.mp3"></audio>
+  <audio id="audio-wrong" preload="auto" src="/audio/wrong.mp3"></audio>
+
+  <script src="/timer_audio.js?v=2.9"></script>
   <script>
     let currentState = {};
     let timerRunning = false;
     let fieldsPopulated = false;
+    let lastObservedPhase = null;
+    let justAnnouncedTransition = false;
+    let teamTransitionAnnouncedR2 = false;
+    let teamTransitionAnnouncedR3 = false;
+
+    function announce(text) {
+      const el = document.getElementById('announcer');
+      if (el) {
+        el.textContent = '';
+        setTimeout(() => { el.textContent = text; }, 50);
+      }
+    }
+
+    function focusQuestion() {
+      setTimeout(() => {
+        const qEl = document.getElementById('question-text');
+        const q = currentState.current_question || {};
+        const qText = q.question || '';
+        if (qEl) {
+          qEl.blur();
+          qEl.focus();
+        }
+        if (qText && !justAnnouncedTransition && currentState.phase !== 'round_2_selection') {
+          announce(`السؤال: ${qText}`);
+        }
+      }, 100);
+    }
+
+    function getQuestionNumbers() {
+      const phase = currentState.phase;
+      const qIdx = currentState.q_idx || 0;
+      let teamQNum = 1, teamTotal = 12, roundQNum = qIdx + 1, roundTotal = currentState.queue_len || 24, matchQNum = qIdx + 1, matchTotal = 48;
+
+      if (phase === 'round_1') {
+        teamQNum = Math.floor(qIdx / 2) + 1;
+        teamTotal = 12;
+        roundQNum = qIdx + 1;
+        roundTotal = currentState.queue_len || 24;
+        matchQNum = qIdx + 1;
+      } else if (phase === 'round_2') {
+        teamQNum = qIdx < 6 ? (qIdx + 1) : (qIdx - 6 + 1);
+        teamTotal = 6;
+        roundQNum = qIdx + 1;
+        roundTotal = currentState.queue_len || 12;
+        matchQNum = 24 + qIdx + 1;
+      } else if (phase === 'round_3') {
+        teamQNum = qIdx < 6 ? (qIdx + 1) : (qIdx - 6 + 1);
+        teamTotal = 6;
+        roundQNum = qIdx + 1;
+        roundTotal = currentState.queue_len || 12;
+        matchQNum = 36 + qIdx + 1;
+      }
+      return { teamQNum, teamTotal, roundQNum, roundTotal, matchQNum, matchTotal };
+    }
+
+    function getQuestionMetaText() {
+      const phase = currentState.phase;
+      if (phase === 'finished') {
+        const sA = currentState.scores[currentState.team_a] || 0;
+        const sB = currentState.scores[currentState.team_b] || 0;
+        let winMsg = sA > sB ? `فوز ${currentState.team_a}` : (sB > sA ? `فوز ${currentState.team_b}` : 'تعادل الفريقين');
+        return `انتهت المباراة! النتيجة النهائية: ${currentState.team_a} (${sA}) مقابل (${sB}) لـ ${currentState.team_b}. النتيجة: ${winMsg}.`;
+      }
+      if (phase === 'starter_speed') {
+        return `المرحلة: فقرة أسئلة السرعة لتحديد الفريق البادئ. سؤال سرعة لتحديد الفريق البادئ. أجاب ${currentState.team_a} (Ctrl+5)، أو أجاب ${currentState.team_b} (Ctrl+6)، أو لم يجب أحد (Ctrl+7).`;
+      }
+      if (phase === 'round_2_selection') {
+        return `المرحلة: اختيار مجالات الفقرة الثانية. يرجى اختيار مجال لكل فريق من القوائم وتأكيد الاختيار.`;
+      }
+      if (phase === 'tie_breaker') {
+        return `المرحلة: مرحلة كسر التعادل. سؤال سرعة حاسم. الفريق الذي يجيب يحسم الفوز بالمباراة.`;
+      }
+
+      const roundNames = {
+        'round_1': 'الفقرة الأولى: الأسئلة العامة',
+        'round_2': 'الفقرة الثانية: اختر مجالك',
+        'round_3': 'الفقرة الثالثة: أسئلة السرعة'
+      };
+      const roundName = roundNames[phase] || 'المرحلة الحالية';
+      const q = currentState.current_question || {};
+      const field = q.field || 'عام';
+      const team = currentState.active_team || '';
+      const isRebound = currentState.is_rebound ? 'سؤال محول' : 'سؤال أصلي';
+      const nums = getQuestionNumbers();
+
+      return `${roundName}. المجال: ${field}. دور فريق ${team} (${isRebound}). سؤال الفريق: رقم ${nums.teamQNum} من ${nums.teamTotal}. السؤال العام للمباراة: رقم ${nums.matchQNum} من ${nums.matchTotal}.`;
+    }
 
     async function fetchState() {
       try {
         const res = await fetch('/api/state');
         currentState = await res.json();
+        checkPhaseTransition();
         updateUI();
       } catch (e) {
         console.error('فشل جلب الحالة:', e);
+      }
+    }
+
+    function checkPhaseTransition() {
+      const currentPhase = currentState.phase;
+      if (!currentPhase) return;
+      if (lastObservedPhase === null) {
+        lastObservedPhase = currentPhase;
+        if (currentPhase === 'round_2' && (currentState.q_idx || 0) > 6) teamTransitionAnnouncedR2 = true;
+        if (currentPhase === 'round_3' && (currentState.q_idx || 0) > 6) teamTransitionAnnouncedR3 = true;
+        return;
+      }
+      if (lastObservedPhase !== currentPhase) {
+        if (lastObservedPhase === 'round_1' && currentPhase === 'round_2_selection') {
+          if (typeof playChime === 'function') playChime();
+          announce('انتهت الفقرة الأولى. نحن الآن في الفقرة الثانية: اختر مجالك.');
+          justAnnouncedTransition = true;
+          setTimeout(() => { justAnnouncedTransition = false; }, 2500);
+          teamTransitionAnnouncedR2 = false;
+        } else if ((lastObservedPhase === 'round_2' || lastObservedPhase === 'round_2_selection') && currentPhase === 'round_3') {
+          if (typeof playChime === 'function') playChime();
+          const q = currentState.current_question || {};
+          const qText = q.question || '';
+          announce(`انتهت الفقرة الثانية. نحن الآن في الفقرة الثالثة: أسئلة السرعة. ${qText ? 'السؤال الأول: ' + qText : ''}`);
+          justAnnouncedTransition = true;
+          setTimeout(() => { justAnnouncedTransition = false; }, 2500);
+          teamTransitionAnnouncedR3 = false;
+        }
+        lastObservedPhase = currentPhase;
+      }
+
+      // الانتقال لأسئلة الفريق الثاني في الفقرة الثانية (اختر مجالك)
+      if (currentPhase === 'round_2' && currentState.q_idx === 6 && !currentState.is_rebound && !teamTransitionAnnouncedR2) {
+        teamTransitionAnnouncedR2 = true;
+        if (typeof playChime === 'function') playChime();
+        const q = currentState.current_question || {};
+        const qText = q.question || '';
+        const field = q.field || '';
+        announce(`انتهت أسئلة فريق ${currentState.starting_team}. ننتقل الآن لأسئلة فريق ${currentState.active_team} في مجال: ${field}. ${qText ? 'السؤال الأول: ' + qText : ''}`);
+        justAnnouncedTransition = true;
+        setTimeout(() => { justAnnouncedTransition = false; }, 2500);
+      }
+
+      // الانتقال لأسئلة الفريق الثاني في الفقرة الثالثة (أسئلة السرعة)
+      if (currentPhase === 'round_3' && currentState.q_idx === 6 && !currentState.is_rebound && !teamTransitionAnnouncedR3) {
+        teamTransitionAnnouncedR3 = true;
+        if (typeof playChime === 'function') playChime();
+        const q = currentState.current_question || {};
+        const qText = q.question || '';
+        announce(`انتهت أسئلة السرعة لفريق ${currentState.starting_team}. ننتقل الآن لأسئلة السرعة لفريق ${currentState.active_team}. ${qText ? 'السؤال الأول: ' + qText : ''}`);
+        justAnnouncedTransition = true;
+        setTimeout(() => { justAnnouncedTransition = false; }, 2500);
       }
     }
 
@@ -289,8 +466,9 @@
       if (isStarter) {
         document.getElementById('round-title').textContent = 'فقرة أسئلة السرعة لتحديد الفريق البادئ';
         document.getElementById('field-name').textContent = 'أسئلة السرعة الأولى';
-        document.getElementById('btn-starter-a').textContent = `أجاب ${currentState.team_a} (${currentState.team_a} يبدأ)`;
-        document.getElementById('btn-starter-b').textContent = `أجاب ${currentState.team_b} (${currentState.team_b} يبدأ)`;
+        document.getElementById('btn-starter-a').textContent = `أجاب ${currentState.team_a} (${currentState.team_a} يبدأ) [Ctrl+5]`;
+        document.getElementById('btn-starter-b').textContent = `أجاب ${currentState.team_b} (${currentState.team_b} يبدأ) [Ctrl+6]`;
+        document.getElementById('btn-starter-next').textContent = 'لم يجب أحد (سؤال سرعة آخر) [Ctrl+7]';
         document.getElementById('timer-box').style.display = 'block';
         document.getElementById('answer-container').style.display = 'block';
       } else if (isR2Select) {
@@ -302,45 +480,65 @@
       } else if (isTie) {
         document.getElementById('round-title').textContent = 'مرحلة كسر التعادل (سؤال سرعة حاسم)';
         document.getElementById('field-name').textContent = 'كسر التعادل';
-        document.getElementById('btn-tie-a').textContent = `أجاب ${currentState.team_a} (نقطة الفوز لـ ${currentState.team_a})`;
-        document.getElementById('btn-tie-b').textContent = `أجاب ${currentState.team_b} (نقطة الفوز لـ ${currentState.team_b})`;
+        document.getElementById('btn-tie-a').textContent = `أجاب ${currentState.team_a} (نقطة الفوز) [Ctrl+5]`;
+        document.getElementById('btn-tie-b').textContent = `أجاب ${currentState.team_b} (نقطة الفوز) [Ctrl+6]`;
         document.getElementById('timer-box').style.display = 'block';
         document.getElementById('answer-container').style.display = 'block';
       } else if (isFinished) {
+        const sA = currentState.scores[currentState.team_a] || 0;
+        const sB = currentState.scores[currentState.team_b] || 0;
+        let winMsg = sA > sB ? `فوز فريق ${currentState.team_a}` : (sB > sA ? `فوز فريق ${currentState.team_b}` : 'تعادل الفريقين');
+        const summary = `انتهت المباراة! النتيجة النهائية: ${currentState.team_a} (${sA}) مقابل (${sB}) لـ ${currentState.team_b}. النتيجة: ${winMsg}.`;
         document.getElementById('round-title').textContent = 'انتهت المباراة';
         document.getElementById('field-name').textContent = 'النتيجة النهائية';
         document.getElementById('timer-box').style.display = 'none';
         document.getElementById('answer-container').style.display = 'none';
+        document.getElementById('question-text').textContent = summary;
+        document.getElementById('correct-answer-text').textContent = winMsg;
+        const qEl = document.getElementById('question-text');
+        if (qEl && document.activeElement !== qEl) {
+          qEl.focus();
+        }
       } else {
         const roundNames = {
           'round_1': 'الفقرة الأولى: الأسئلة العامة',
           'round_2': 'الفقرة الثانية: اختر مجالك',
           'round_3': 'الفقرة الثالثة: أسئلة السرعة'
         };
-        const curQIdx = (currentState.q_idx || 0) + 1;
-        const totalQ = currentState.queue_len || 0;
-        const progress = totalQ > 0 ? ` (${curQIdx} من ${totalQ})` : '';
-        document.getElementById('round-title').textContent = (roundNames[phase] || phase) + progress;
-        document.getElementById('field-name').textContent = `المجال: ${(currentState.current_question && currentState.current_question.field) || 'عام'} - الدور لـ: ${currentState.active_team} ${currentState.is_rebound ? '(سؤال محول)' : ''}`;
+        const nums = getQuestionNumbers();
+        document.getElementById('round-title').textContent = `${roundNames[phase] || phase} (سؤال الفريق ${nums.teamQNum} من ${nums.teamTotal} | السؤال العام ${nums.matchQNum} من ${nums.matchTotal})`;
+        document.getElementById('field-name').textContent = `المجال: ${(currentState.current_question && currentState.current_question.field) || 'عام'} - دور فريق: ${currentState.active_team} (سؤال الفريق ${nums.teamQNum} من ${nums.teamTotal}) ${currentState.is_rebound ? '(سؤال محول)' : ''}`;
         document.getElementById('timer-box').style.display = 'block';
         document.getElementById('answer-container').style.display = 'block';
       }
 
       // نص السؤال والإجابة النموذجية
       const q = currentState.current_question || {};
-      document.getElementById('question-text').textContent = q.question || 'لا يوجد سؤال حالياً';
-      
-      const ansText = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : '');
-      document.getElementById('correct-answer-text').textContent = ansText ? ansText : 'غير محددة في الملف';
+      if (!isFinished) {
+        document.getElementById('question-text').textContent = q.question || (isR2Select ? 'يرجى اختيار مجالات الفريقين لبدء الفقرة الثانية' : 'لا يوجد سؤال حالياً');
+        const ansText = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : '');
+        document.getElementById('correct-answer-text').textContent = ansText ? ansText : 'غير محددة في الملف';
+      }
 
       // أزرار التحكم وقواعد الفقرات
       if (isNormal) {
         const isR1 = phase === 'round_1';
-        const remLifelines = currentState.lifelines ? currentState.lifelines[currentState.active_team] : 3;
+        const remLifelines = currentState.lifelines ? (currentState.lifelines[currentState.active_team] !== undefined ? currentState.lifelines[currentState.active_team] : 4) : 4;
         const lifelineBtn = document.getElementById('btn-lifeline');
         lifelineBtn.style.display = isR1 ? 'inline-block' : 'none';
-        lifelineBtn.textContent = `طلب كشف الخيارات (متبقي لـ ${currentState.active_team}: ${remLifelines})`;
-        lifelineBtn.disabled = remLifelines <= 0 || currentState.is_rebound || currentState.options_revealed || !isR1;
+        if (currentState.options_revealed) {
+          lifelineBtn.textContent = currentState.is_rebound ? 'إعادة قراءة الخيارات (مكشوفة بالسؤال المحول) [Ctrl+4]' : 'إعادة قراءة الخيارات (مكشوفة) [Ctrl+4]';
+          lifelineBtn.disabled = false;
+        } else if (currentState.is_rebound) {
+          lifelineBtn.textContent = 'طلب الخيارات (غير متاح في الأسئلة المحولة) [Ctrl+4]';
+          lifelineBtn.disabled = true;
+        } else if (remLifelines <= 0) {
+          lifelineBtn.textContent = `طلب الخيارات (استنفدت فرص ${currentState.active_team}) [Ctrl+4]`;
+          lifelineBtn.disabled = true;
+        } else {
+          lifelineBtn.textContent = `طلب كشف الخيارات (متبقي لـ ${currentState.active_team}: ${remLifelines}) [Ctrl+4]`;
+          lifelineBtn.disabled = false;
+        }
 
         const wrongBtn = document.getElementById('btn-wrong');
         wrongBtn.textContent = currentState.is_rebound ? 'إجابة خاطئة (السؤال التالي)' : 'إجابة خاطئة (تحويل السؤال)';
@@ -429,7 +627,9 @@
         body: JSON.stringify({action: 'choose_fields', field_starter: f1, field_opp: f2})
       });
       fieldsPopulated = false;
-      fetchState();
+      teamTransitionAnnouncedR2 = false;
+      await fetchState();
+      focusQuestion();
     }
 
     async function setStarterTeam(team) {
@@ -441,7 +641,8 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'set_starter', team: team})
       });
-      fetchState();
+      await fetchState();
+      focusQuestion();
     }
 
     async function nextStarterQuestion() {
@@ -453,10 +654,12 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'next_starter'})
       });
-      fetchState();
+      await fetchState();
+      focusQuestion();
     }
 
     function toggleTimer(customDur) {
+      if (currentState.phase === 'round_2_selection' || currentState.phase === 'finished') return;
       const isStarter = currentState.phase === 'starter_speed';
       const btn = isStarter ? document.getElementById('btn-starter-timer') : document.getElementById('btn-timer');
       const box = document.getElementById('timer-box');
@@ -483,18 +686,69 @@
       }
     }
 
-    async function requestLifeline() {
+    // تفعيل الخيارات بذكاء: سرعة مباشرة في عرض الخيارات مع تنبيه عند استنفاد الفرص
+    async function handleChoicesShortcut() {
+      if (currentState.phase !== 'round_1') {
+        announce('طلب الخيارات متاح فقط في أسئلة الفقرة الأولى.');
+        return;
+      }
+      const q = currentState.current_question || {};
+      const choices = q.choices || [];
+      if (choices.length < 4) {
+        announce('لا توجد خيارات متاحة لهذا السؤال.');
+        return;
+      }
+      const choicesSpeech = `الخيارات هي: أ: ${choices[0]} . ب: ${choices[1]} . ج: ${choices[2]} . د: ${choices[3]}.`;
+
+      // إذا كانت الخيارات مكشوفة مسبقاً لهذا السؤال (أصلي أو محول): قراءتها سريعاً ونقل التركيز فوراً
+      if (currentState.options_revealed) {
+        announce(choicesSpeech);
+        setTimeout(() => {
+          const o = document.getElementById('opt-1');
+          if (o) o.focus();
+        }, 150);
+        return;
+      }
+
+      // إذا كان السؤال محولاً ولم تُطلب الخيارات مسبقاً: تنبيه بعدم الإتاحة
+      if (currentState.is_rebound) {
+        announce('عذراً، لا يمكن طلب الخيارات في السؤال المحول.');
+        return;
+      }
+
+      // إذا استنفد الفريق فرصه: تنبيه بعدم توفر فرص
+      const team = currentState.active_team;
+      const remLifelines = currentState.lifelines ? (currentState.lifelines[team] || 0) : 0;
+      if (remLifelines <= 0) {
+        announce(`عذراً، استنفد فريق ${team} كافة فرص الخيارات.`);
+        return;
+      }
+
+      // طلب كشف الخيارات لأول مرة: إيقاف المؤقت واستدعاء الخيارات وعرضها فوراً
       pauseTimer();
-      document.getElementById('btn-timer').textContent = 'استئناف المؤقت';
+      const timerBtn = document.getElementById('btn-timer');
+      if (timerBtn) timerBtn.textContent = 'استئناف المؤقت';
       await fetch('/api/action', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'lifeline', team: currentState.active_team})
+        body: JSON.stringify({action: 'lifeline', team: team})
       });
-      fetchState();
+      await fetchState();
+
+      if (currentState.options_revealed) {
+        announce(choicesSpeech);
+        setTimeout(() => {
+          const o = document.getElementById('opt-1');
+          if (o) o.focus();
+        }, 150);
+      }
     }
 
     async function submitAnswer(isCorrect) {
+      if (currentState.phase === 'round_2_selection' || currentState.phase === 'finished') {
+        announce('لا يوجد سؤال نشط حالياً لاحتساب إجابة.');
+        return;
+      }
       stopTimer();
       timerRunning = false;
       if (isCorrect) playCorrect();
@@ -504,7 +758,23 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: isCorrect ? 'correct' : 'wrong', team: currentState.active_team})
       });
-      fetchState();
+      await fetchState();
+      focusQuestion();
+    }
+
+    async function submitAnswerForTeam(team, isCorrect) {
+      if (currentState.phase === 'round_2_selection' || currentState.phase === 'finished') return;
+      stopTimer();
+      timerRunning = false;
+      if (isCorrect) playCorrect();
+      else playWrong();
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: isCorrect ? 'correct' : 'wrong', team: team})
+      });
+      await fetchState();
+      focusQuestion();
     }
 
     async function submitTieAnswer(winnerTeam) {
@@ -516,43 +786,151 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'correct', team: winnerTeam})
       });
-      fetchState();
+      await fetchState();
+      focusQuestion();
     }
 
     async function replaceQuestion() {
+      if (currentState.phase === 'round_2_selection' || currentState.phase === 'finished') return;
       stopTimer();
       timerRunning = false;
-      document.getElementById('btn-timer').textContent = 'تشغيل المؤقت';
+      const timerBtn = document.getElementById('btn-timer');
+      if (timerBtn) timerBtn.textContent = 'تشغيل المؤقت';
+      const prevQ = (currentState.current_question && currentState.current_question.question) || '';
       await fetch('/api/action', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'replace_question'})
       });
-      fetchState();
-    }
-
-    async function nextQuestion() {
-      stopTimer();
-      timerRunning = false;
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'next'})
-      });
-      fetchState();
+      await fetchState();
+      const newQ = (currentState.current_question && currentState.current_question.question) || '';
+      if (prevQ && prevQ === newQ) {
+        announce('عذراً، نفد رصيد الأسئلة الاحتياطية.');
+      } else {
+        announce(`تم استبدال السؤال بنجاح. السؤال البديل: ${newQ}`);
+        focusQuestion();
+      }
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-      if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
-      else if (e.key === 'h' || e.key === 'H' || e.key === 'ا') { requestLifeline(); }
-      else if (e.key === '1') { submitAnswer(true); }
-      else if (e.key === '2') { submitAnswer(false); }
-      else if (e.key === 'n' || e.key === 'N' || e.key === 'ى') { nextQuestion(); }
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+        if (!e.ctrlKey) return;
+      }
+
+      // عند انتهاء المباراة: إيقاف وتعطيل كافة الاختصارات باستثناء Ctrl + ` أو Ctrl + ذ لنطق ملخص الفائز والنتيجة
+      if (currentState.phase === 'finished') {
+        if (e.ctrlKey && (e.code === 'Backquote' || e.key === '`' || e.key === 'ذ' || e.key === '~')) {
+          e.preventDefault();
+          announce(getQuestionMetaText());
+        }
+        return;
+      }
+
+      // Ctrl + ` أو Ctrl + ذ: نطق بيانات السؤال الحالي كاملة
+      if (e.ctrlKey && (e.code === 'Backquote' || e.key === '`' || e.key === 'ذ' || e.key === '~')) {
+        e.preventDefault();
+        announce(getQuestionMetaText());
+        return;
+      }
+
+      // Ctrl + 1: نطق السؤال الحالي بالكامل ونقل التركيز له
+      if (e.ctrlKey && (e.code === 'Digit1' || e.key === '1')) {
+        e.preventDefault();
+        const qText = (currentState.current_question && currentState.current_question.question) || 'لا يوجد سؤال حالياً';
+        announce(`السؤال: ${qText}`);
+        focusQuestion();
+        return;
+      }
+
+      // Ctrl + 2: نطق الإجابة النموذجية
+      if (e.ctrlKey && (e.code === 'Digit2' || e.key === '2')) {
+        e.preventDefault();
+        const q = currentState.current_question || {};
+        const ans = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : 'غير محددة في الملف');
+        announce(`الإجابة النموذجية: ${ans}`);
+        return;
+      }
+
+      // Ctrl + 3: تشغيل أو إيقاف أو استئناف المؤقت
+      if (e.ctrlKey && (e.code === 'Digit3' || e.key === '3')) {
+        e.preventDefault();
+        toggleTimer();
+        return;
+      }
+
+      // Ctrl + 4: طلب كشف الخيارات بذكاء (أو إعادة قراءتها دون لمس التايمر)
+      if (e.ctrlKey && (e.code === 'Digit4' || e.key === '4')) {
+        e.preventDefault();
+        handleChoicesShortcut();
+        return;
+      }
+
+      // Ctrl + 5: إجابة الفريق الأول (في السرعة الأولى وكسر التعادل) أو إجابة صحيحة واحتساب نقطة
+      if (e.ctrlKey && (e.code === 'Digit5' || e.key === '5')) {
+        e.preventDefault();
+        if (currentState.phase === 'round_2_selection') {
+          announce('لا يمكن احتساب نقاط أثناء مرحلة اختيار المجالات. يرجى تأكيد المجالات أولاً.');
+          return;
+        }
+        if (currentState.phase === 'starter_speed') {
+          setStarterTeam(currentState.team_a);
+        } else if (currentState.phase === 'tie_breaker') {
+          submitTieAnswer(currentState.team_a);
+        } else {
+          submitAnswer(true);
+        }
+        return;
+      }
+
+      // Ctrl + 6: إجابة الفريق الثاني (في السرعة الأولى وكسر التعادل) أو إجابة خاطئة وتحويل السؤال
+      if (e.ctrlKey && (e.code === 'Digit6' || e.key === '6')) {
+        e.preventDefault();
+        if (currentState.phase === 'round_2_selection') {
+          announce('لا يوجد سؤال نشط حالياً.');
+          return;
+        }
+        if (currentState.phase === 'starter_speed') {
+          setStarterTeam(currentState.team_b);
+        } else if (currentState.phase === 'tie_breaker') {
+          submitTieAnswer(currentState.team_b);
+        } else {
+          submitAnswer(false);
+        }
+        return;
+      }
+
+      // Ctrl + 7: لم يجب أحد (متاح حصراً في فقرة أسئلة السرعة الأولى أو كسر التعادل)
+      if (e.ctrlKey && (e.code === 'Digit7' || e.key === '7')) {
+        e.preventDefault();
+        if (currentState.phase === 'starter_speed') {
+          nextStarterQuestion();
+        } else if (currentState.phase === 'tie_breaker') {
+          replaceQuestion();
+        } else {
+          announce('اختصار (لم يجب أحد) متاح فقط في فقرة أسئلة السرعة لتحديد الفريق البادئ.');
+        }
+        return;
+      }
+
+      // اختصارات فردية سريعة
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleTimer();
+      } else if (e.key === 'h' || e.key === 'H' || e.key === 'ا') {
+        handleChoicesShortcut();
+      }
     });
 
-    setInterval(fetchState, 1500);
-    fetchState();
+    let isPolling = false;
+    async function pollStateLoop() {
+      if (!isPolling) {
+        isPolling = true;
+        try { await fetchState(); } catch (e) {}
+        isPolling = false;
+      }
+      setTimeout(pollStateLoop, 1500);
+    }
+    fetchState().then(() => { focusQuestion(); setTimeout(pollStateLoop, 1500); });
   </script>
 </body>
 </html>
