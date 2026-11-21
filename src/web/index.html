@@ -126,6 +126,13 @@
       outline: 3px solid #f0883e;
       background: #1f2937;
     }
+    .answer-box:focus {
+      outline: 3px solid #f0883e;
+      background: #143823;
+    }
+    .field-tag:focus {
+      outline: 3px solid #f0883e;
+    }
     .option-correct {
       border-color: #3fb950;
       background: #0e2a14;
@@ -171,7 +178,7 @@
   </style>
 </head>
 <body>
-  <main class="container">
+  <main class="container" role="application" aria-label="شاشة تحكيم مسابقة ثقف نفسك">
     <header class="header-bar">
       <div>
         <h1 id="match-title">مسابقة ثقف نفسك</h1>
@@ -189,11 +196,11 @@
 
     <!-- لوحة السؤال والإجابة النموذجية -->
     <section class="question-panel" aria-labelledby="question-text">
-      <div id="field-name" class="field-tag">تحديد الفريق البادئ</div>
+      <div id="field-name" class="field-tag" tabindex="-1">تحديد الفريق البادئ</div>
       <h2 id="question-text" class="question-title" tabindex="-1">جاري تحميل السؤال...</h2>
       
-      <!-- الإجابة النموذجية معروضة لدكتور إبراهيم بدون aria-live لمنع قفز القارئ إليها -->
-      <div id="answer-container" class="answer-box">
+      <!-- الإجابة النموذجية معروضة لدكتور إبراهيم وقابلة للتركيز لقراءتها فوراً -->
+      <div id="answer-container" class="answer-box" tabindex="-1">
         <span class="answer-label">الإجابة النموذجية:</span>
         <span id="correct-answer-text" class="answer-text">جاري التحميل...</span>
       </div>
@@ -269,15 +276,15 @@
 
     <!-- دليل الاختصارات السريعة -->
     <footer class="shortcuts-help">
-      <strong>اختصارات لوحة المفاتيح لدكتور إبراهيم:</strong><br>
-      • <strong>Ctrl + ` / ذ</strong>: نطق بيانات السؤال كاملة (الفقرة، المجال، دور الفريق، رقم سؤال الفريق، رقم السؤال في الفقرة، رقم السؤال العام في المباراة).<br>
-      • <strong>Ctrl + 1</strong>: نطق نص السؤال الحالي ونقل التركيز عليه.<br>
-      • <strong>Ctrl + 2</strong>: نطق الإجابة النموذجية.<br>
-      • <strong>Ctrl + 3</strong> (أو مسافة): تشغيل / إيقاف مؤقت / استئناف التايمر.<br>
-      • <strong>Ctrl + 4</strong> (أو حرف ا): طلب كشف الخيارات وإيقاف التايمر لأول مرة، وإعادة قراءة الخيارات كاملة في كل ضغطة تالية دون لمس التايمر.<br>
-      • <strong>Ctrl + 5</strong>: في أسئلة السرعة الأولى (أجاب الفريق الأول) / في جولات المسابقة (إجابة صحيحة واحتساب نقطة).<br>
-      • <strong>Ctrl + 6</strong>: في أسئلة السرعة الأولى (أجاب الفريق الثاني) / في جولات المسابقة (إجابة خاطئة وتحويل السؤال).<br>
-      • <strong>Ctrl + 7</strong>: في أسئلة السرعة الأولى فقط (لم يجب أحد - سحب سؤال سرعة آخر).<br>
+      <strong>اختصارات لوحة المفاتيح لدكتور إبراهيم (تعمل بمفردها أو مع Ctrl):</strong><br>
+      • <strong>مفتاح ذ / ` (أو Ctrl + ذ)</strong>: نطق بيانات السؤال كاملة (الفقرة، المجال، دور الفريق، والنتيجة).<br>
+      • <strong>مفتاح 1 (أو Ctrl + 1)</strong>: نطق نص السؤال الحالي ونقل التركيز عليه.<br>
+      • <strong>مفتاح 2 (أو Ctrl + 2)</strong>: نطق الإجابة النموذجية فوراً ونقل التركيز لها.<br>
+      • <strong>مفتاح 3 (أو Ctrl + 3 أو مسافة)</strong>: تشغيل / إيقاف مؤقت / استئناف التايمر.<br>
+      • <strong>مفتاح 4 (أو Ctrl + 4 أو حرف ا)</strong>: طلب كشف الخيارات وإيقاف التايمر لأول مرة، وإعادة قراءتها.<br>
+      • <strong>مفتاح 5 (أو Ctrl + 5)</strong>: أجاب الفريق الأول / إجابة صحيحة واحتساب نقطة.<br>
+      • <strong>مفتاح 6 (أو Ctrl + 6)</strong>: أجاب الفريق الثاني / إجابة خاطئة وتحويل السؤال.<br>
+      • <strong>مفتاح 7 (أو Ctrl + 7)</strong>: في أسئلة السرعة (لم يجب أحد - سحب سؤال سرعة آخر).<br>
     </footer>
 
     <!-- منطقة الإعلانات الحية لقارئ الشاشة NVDA -->
@@ -319,6 +326,41 @@
           announce(`السؤال: ${qText}`);
         }
       }, 100);
+    }
+
+    function focusAnswer() {
+      setTimeout(() => {
+        const aEl = document.getElementById('answer-container');
+        const q = currentState.current_question || {};
+        let ans = '';
+        if (currentState.phase === 'finished') {
+          ans = 'انتهت المباراة';
+        } else if (currentState.phase === 'round_2_selection') {
+          ans = 'المرحلة الحالية هي اختيار المجالات ولا يوجد سؤال نشط';
+        } else {
+          ans = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : 'غير محددة في الملف');
+        }
+        const speech = `الإجابة النموذجية: ${ans}`;
+        if (aEl) {
+          aEl.setAttribute('aria-label', speech);
+          aEl.blur();
+          aEl.focus();
+        }
+        announce(speech);
+      }, 50);
+    }
+
+    function focusMeta() {
+      setTimeout(() => {
+        const meta = getQuestionMetaText();
+        const mEl = document.getElementById('field-name');
+        if (mEl) {
+          mEl.setAttribute('aria-label', meta);
+          mEl.blur();
+          mEl.focus();
+        }
+        announce(meta);
+      }, 50);
     }
 
     function getQuestionNumbers() {
@@ -813,60 +855,99 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
-        if (!e.ctrlKey) return;
-      }
+      const inInput = e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT';
+      if (inInput && !e.ctrlKey) return;
 
-      // عند انتهاء المباراة: إيقاف وتعطيل كافة الاختصارات باستثناء Ctrl + ` أو Ctrl + ذ لنطق ملخص الفائز والنتيجة
+      const code = e.code || '';
+      const key = e.key || '';
+      const kc = e.keyCode || e.which || 0;
+
+      // التعرف الشامل على مفتاح الذال / Backquote بكافة اللغات وتوزيعات لوحة المفاتيح
+      const isBackquote = code === 'Backquote' || 
+                          key === '`' || key === 'ذ' || key === '~' || key === '÷' || key === 'Dead' ||
+                          kc === 192;
+
+      // مفتاح رقم 1 (السؤال)
+      const isDigit1 = code === 'Digit1' || code === 'Numpad1' || 
+                       key === '1' || key === '١' || key === 'q' || key === 'Q' || key === 'ض' ||
+                       kc === 49 || kc === 97;
+
+      // مفتاح رقم 2 (الإجابة النموذجية)
+      const isDigit2 = code === 'Digit2' || code === 'Numpad2' || 
+                       key === '2' || key === '٢' || key === 'w' || key === 'W' || key === 'ص' ||
+                       kc === 50 || kc === 98;
+
+      // مفتاح رقم 3 (المؤقت)
+      const isDigit3 = code === 'Digit3' || code === 'Numpad3' || 
+                       key === '3' || key === '٣' || key === 'e' || key === 'E' || key === 'ث' ||
+                       kc === 51 || kc === 99;
+
+      // مفتاح رقم 4 (الخيارات)
+      const isDigit4 = code === 'Digit4' || code === 'Numpad4' || 
+                       key === '4' || key === '٤' || key === 'r' || key === 'R' || key === 'ق' ||
+                       kc === 52 || kc === 100;
+
+      // مفتاح رقم 5 (صحيحة / الفريق الأول)
+      const isDigit5 = code === 'Digit5' || code === 'Numpad5' || 
+                       key === '5' || key === '٥' || key === 't' || key === 'T' || key === 'ف' ||
+                       kc === 53 || kc === 101;
+
+      // مفتاح رقم 6 (خاطئة / الفريق الثاني)
+      const isDigit6 = code === 'Digit6' || code === 'Numpad6' || 
+                       key === '6' || key === '٦' || key === 'y' || key === 'Y' || key === 'غ' ||
+                       kc === 54 || kc === 102;
+
+      // مفتاح رقم 7 (لم يجب أحد)
+      const isDigit7 = code === 'Digit7' || code === 'Numpad7' || 
+                       key === '7' || key === '٧' || key === 'u' || key === 'U' || key === 'ع' ||
+                       kc === 55 || kc === 103;
+
+      // عند انتهاء المباراة: إتاحة نطق ملخص النتيجة بمفتاح الذال
       if (currentState.phase === 'finished') {
-        if (e.ctrlKey && (e.code === 'Backquote' || e.key === '`' || e.key === 'ذ' || e.key === '~')) {
+        if (isBackquote) {
           e.preventDefault();
-          announce(getQuestionMetaText());
+          focusMeta();
         }
         return;
       }
 
-      // Ctrl + ` أو Ctrl + ذ: نطق بيانات السؤال الحالي كاملة
-      if (e.ctrlKey && (e.code === 'Backquote' || e.key === '`' || e.key === 'ذ' || e.key === '~')) {
+      // 1. مفتاح الذال / Backquote (مع Ctrl أو بمفرده): نطق بيانات السؤال والفقرة والمجال والنتيجة
+      if (isBackquote) {
         e.preventDefault();
-        announce(getQuestionMetaText());
+        focusMeta();
         return;
       }
 
-      // Ctrl + 1: نطق السؤال الحالي بالكامل ونقل التركيز له
-      if (e.ctrlKey && (e.code === 'Digit1' || e.key === '1')) {
+      // 2. رقم 1 (مع Ctrl أو بمفرده): نطق نص السؤال الحالي ونقل التركيز له
+      if ((e.ctrlKey && (code === 'Digit1' || key === '1' || kc === 49)) || (!inInput && isDigit1)) {
         e.preventDefault();
-        const qText = (currentState.current_question && currentState.current_question.question) || 'لا يوجد سؤال حالياً';
-        announce(`السؤال: ${qText}`);
         focusQuestion();
         return;
       }
 
-      // Ctrl + 2: نطق الإجابة النموذجية
-      if (e.ctrlKey && (e.code === 'Digit2' || e.key === '2')) {
+      // 3. رقم 2 (مع Ctrl أو بمفرده): نطق الإجابة النموذجية فوراً ونقل التركيز لها
+      if ((e.ctrlKey && (code === 'Digit2' || key === '2' || kc === 50)) || (!inInput && isDigit2)) {
         e.preventDefault();
-        const q = currentState.current_question || {};
-        const ans = q.correct_answer || (q.choices && q.correct_index !== undefined ? q.choices[q.correct_index] : 'غير محددة في الملف');
-        announce(`الإجابة النموذجية: ${ans}`);
+        focusAnswer();
         return;
       }
 
-      // Ctrl + 3: تشغيل أو إيقاف أو استئناف المؤقت
-      if (e.ctrlKey && (e.code === 'Digit3' || e.key === '3')) {
+      // 4. رقم 3 (مع Ctrl أو بمفرده) أو مسافة: تشغيل أو إيقاف أو استئناف المؤقت
+      if ((e.ctrlKey && (code === 'Digit3' || key === '3' || kc === 51)) || (!inInput && isDigit3) || code === 'Space') {
         e.preventDefault();
         toggleTimer();
         return;
       }
 
-      // Ctrl + 4: طلب كشف الخيارات بذكاء (أو إعادة قراءتها دون لمس التايمر)
-      if (e.ctrlKey && (e.code === 'Digit4' || e.key === '4')) {
+      // 5. رقم 4 (مع Ctrl أو بمفرده) أو حرف h / ا: طلب كشف الخيارات / إعادة قراءتها
+      if ((e.ctrlKey && (code === 'Digit4' || key === '4' || kc === 52)) || (!inInput && isDigit4) || (!inInput && (key === 'h' || key === 'H' || key === 'ا'))) {
         e.preventDefault();
         handleChoicesShortcut();
         return;
       }
 
-      // Ctrl + 5: إجابة الفريق الأول (في السرعة الأولى وكسر التعادل) أو إجابة صحيحة واحتساب نقطة
-      if (e.ctrlKey && (e.code === 'Digit5' || e.key === '5')) {
+      // 6. رقم 5 (مع Ctrl أو بمفرده): إجابة الفريق الأول أو إجابة صحيحة واحتساب نقطة
+      if ((e.ctrlKey && (code === 'Digit5' || key === '5' || kc === 53)) || (!inInput && isDigit5)) {
         e.preventDefault();
         if (currentState.phase === 'round_2_selection') {
           announce('لا يمكن احتساب نقاط أثناء مرحلة اختيار المجالات. يرجى تأكيد المجالات أولاً.');
@@ -882,8 +963,8 @@
         return;
       }
 
-      // Ctrl + 6: إجابة الفريق الثاني (في السرعة الأولى وكسر التعادل) أو إجابة خاطئة وتحويل السؤال
-      if (e.ctrlKey && (e.code === 'Digit6' || e.key === '6')) {
+      // 7. رقم 6 (مع Ctrl أو بمفرده): إجابة الفريق الثاني أو إجابة خاطئة وتحويل السؤال
+      if ((e.ctrlKey && (code === 'Digit6' || key === '6' || kc === 54)) || (!inInput && isDigit6)) {
         e.preventDefault();
         if (currentState.phase === 'round_2_selection') {
           announce('لا يوجد سؤال نشط حالياً.');
@@ -899,8 +980,8 @@
         return;
       }
 
-      // Ctrl + 7: لم يجب أحد (متاح حصراً في فقرة أسئلة السرعة الأولى أو كسر التعادل)
-      if (e.ctrlKey && (e.code === 'Digit7' || e.key === '7')) {
+      // 8. رقم 7 (مع Ctrl أو بمفرده): لم يجب أحد (في السرعة الأولى أو كسر التعادل)
+      if ((e.ctrlKey && (code === 'Digit7' || key === '7' || kc === 55)) || (!inInput && isDigit7)) {
         e.preventDefault();
         if (currentState.phase === 'starter_speed') {
           nextStarterQuestion();
@@ -910,14 +991,6 @@
           announce('اختصار (لم يجب أحد) متاح فقط في فقرة أسئلة السرعة لتحديد الفريق البادئ.');
         }
         return;
-      }
-
-      // اختصارات فردية سريعة
-      if (e.code === 'Space') {
-        e.preventDefault();
-        toggleTimer();
-      } else if (e.key === 'h' || e.key === 'H' || e.key === 'ا') {
-        handleChoicesShortcut();
       }
     });
 
