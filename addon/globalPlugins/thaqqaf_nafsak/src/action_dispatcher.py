@@ -6,18 +6,23 @@ except ImportError:
     import bank_storage
 
 def dispatch_web_action(state, action: str, body: Dict[str, Any], state_dict: Dict[str, Any]):
-    if state.phase in ("round_2_selection", "finished") and action in ("correct", "wrong", "lifeline", "replace_question"):
+    if action == "finish_rules":
+        if state.phase == "rules_intro":
+            state.finish_rules_intro()
+    elif state.phase in ("rules_intro", "round_2_selection", "finished") and action in ("correct", "wrong", "lifeline", "replace_question"):
         state_dict.clear(); state_dict.update(state.to_dict()); return
-
-    if action == "set_starter":
+    elif action == "set_starter":
         state.set_starting_team(body.get("team", state.team_a))
     elif action == "next_starter":
         state.next_starter_question()
     elif action == "choose_fields":
         f_st, f_opp = body.get("field_starter", ""), body.get("field_opp", "")
-        counts = {f: len(qs) for f, qs in state.q_data.get("round_2", {}).items()}
+        counts = state.to_dict().get("r2_field_counts", {})
         if f_st == f_opp and counts.get(f_st, 0) < 12: return
         state.start_round_2_with_fields(f_st, f_opp)
+    elif action == "penalty":
+        if state.phase not in ("rules_intro", "finished"):
+            state.apply_penalty(body.get("team", ""))
     elif action == "correct":
         team = body.get("team", state.active_team)
         state.advance_turn(team, is_correct=True)

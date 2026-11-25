@@ -1,4 +1,4 @@
-# ثقف نفسك (Thaqqaf Nafsak) - الإصدار الثاني v2.0.0
+# ثقف نفسك (Thaqqaf Nafsak) - الإصدار الثالث v3.0.0
 ## إضافة رسمية لقارئ الشاشة NVDA لإدارة وتحكيم مسابقات المعلومات العامة
 
 إضافة متكاملة ومستقلة تماماً (Zero-Dependency) مخصصة لقارئ الشاشة NVDA، صُممت لمساعدة مقدمي ومحكمي المسابقات الثقافية من المكفوفين (د. إبراهيم وفريد محمد) على إدارة وتحكيم مسابقات المعلومات العامة الإذاعية بدقة واحترافية عالية.
@@ -7,10 +7,9 @@
 
 ### روابط التحميل والتوثيق المباشرة
 
+- **[تحميل حزمة الإضافة الرسمية للإصدار الثالث (thaqqaf_nafsak-3.0.0.nvda-addon)](https://github.com/farid5006/thaqqaf-nafsak/raw/main/dist/thaqqaf_nafsak-3.0.0.nvda-addon)**
+- **[سجل مستجدات الإصدار الثالث (CHANGELOG_v3.md)](CHANGELOG_v3.md)**
 - **[سجل المستجدات والتحولات الهندسية الشاملة للإصدار الثاني (CHANGELOG_v2.md)](CHANGELOG_v2.md)**
-
-- **[تحميل حزمة الإضافة الرسمية للإصدار الثاني (thaqqaf_nafsak-2.0.0.nvda-addon)](https://github.com/farid5006/thaqqaf-nafsak/raw/main/dist/thaqqaf_nafsak-2.0.0.nvda-addon)**
-- **[تحميل نموذج الأسئلة المعتمد والمكتمل (12 مجالاً وأسئلة السرعة)](https://raw.githubusercontent.com/farid5006/thaqqaf-nafsak/main/%D9%86%D9%85%D9%88%D8%B0%D8%AC_%D8%A3%D8%B3%D8%A6%D9%84%D8%A9_%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A8%D9%82%D8%A9_%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%A8%D9%82%D8%A9_%D8%A7%D9%84%D9%85%D9%83%D8%AA%D9%85%D9%84.txt)**
 - **[مستودع المشروع على GitHub](https://github.com/farid5006/thaqqaf-nafsak)**
 
 ---

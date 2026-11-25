@@ -1,12 +1,12 @@
 """موديول استعادة وبناء حالة المباراة المحفوظة بدقة لمواصلة اللعب."""
 from typing import Any, Dict
 
-def restore_match_state(act_m: Dict[str, Any], q_data: Dict[str, Any]):
+def restore_match_state(act_m: Dict[str, Any], q_data: Dict[str, Any], used_ids=None):
     try: from .match_state import MatchState; from .queue_builder import build_r1_queue, build_r2_queue, build_r3_queue
     except ImportError: from match_state import MatchState; from queue_builder import build_r1_queue, build_r2_queue, build_r3_queue
 
     t1, t2 = act_m.get("team_a", "الفريق الأول"), act_m.get("team_b", "الفريق الثاني")
-    st = MatchState(t1, t2, q_data=q_data, match_id=act_m.get("match_id"), tournament=act_m.get("tournament", ""), rep_pct=act_m.get("rep_pct", 0))
+    st = MatchState(t1, t2, q_data=q_data, match_id=act_m.get("match_id"), used_ids=used_ids, tournament=act_m.get("tournament", ""), rep_pct=act_m.get("rep_pct", 0))
     st.phase = act_m.get("phase", "round_1")
     st.scores = dict(act_m.get("scores", st.scores))
     st.lifelines = dict(act_m.get("lifelines", st.lifelines))
@@ -27,5 +27,9 @@ def restore_match_state(act_m: Dict[str, Any], q_data: Dict[str, Any]):
     st.active_team = act_m.get("active_team", st.active_team)
     st.is_rebound = act_m.get("is_rebound", False)
     st.options_revealed = act_m.get("options_revealed", False)
+    st.rebounds = int(act_m.get("rebounds", 0))
+    if act_m.get("r_scores"): st.r_scores = dict(act_m["r_scores"])
+    if act_m.get("r_rebounds"): st.r_rebounds = dict(act_m["r_rebounds"])
+    if act_m.get("asked_q_ids"): st.asked_q_ids = list(act_m["asked_q_ids"])
     if act_m.get("current_question"): st.current_question = act_m["current_question"]
     return st

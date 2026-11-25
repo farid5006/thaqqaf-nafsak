@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-import os, sys, webbrowser
+import os, sys, threading, webbrowser
 try: import globalPluginHandler, gui, ui, wx
 except ImportError: globalPluginHandler = gui = ui = wx = None
 try: from scriptHandler import script
@@ -37,7 +37,8 @@ class GlobalPlugin(_Base):
     def script_launch(self, gesture):
         if self._server and getattr(self._cur_state, "phase", "") not in ("", "finished"):
             if ui and hasattr(ui, "message"): ui.message("العودة إلى شاشة عرض أسئلة المباراة")
-            webbrowser.open(self._server.get_url()); return
+            webbrowser_url = self._server.get_url()
+            threading.Thread(target=webbrowser.open, args=(webbrowser_url,), daemon=True).start(); return
         if self._dialog_open:
             if ui and hasattr(ui, "message"): ui.message("نافذة مسابقة ثقف نفسك مفتوحة بالفعل")
             return
@@ -76,16 +77,16 @@ class GlobalPlugin(_Base):
     def _resume_match(self, act_m):
         if not self._server:
             bank = bank_storage.load_bank()
-            st = self._cur_state or state_restorer.restore_match_state(act_m, bank.get("questions") or {})
+            st = self._cur_state or state_restorer.restore_match_state(act_m, bank.get("questions") or {}, used_ids=set(bank.get("used", {}).keys()))
             url = self._start_server_cb(st, st.to_dict())
         else: url = self._server.get_url()
-        if url: webbrowser.open(url)
+        if url: threading.Thread(target=webbrowser.open, args=(url,), daemon=True).start()
 
     def _stop_server(self):
-        if self._server:
-            try: self._server.stop()
-            except Exception: pass
+        srv = self._server
         self._server, self._cur_state = None, None
+        if srv:
+            threading.Thread(target=srv.stop, daemon=True).start()
 
     def terminate(self):
         self._stop_server()

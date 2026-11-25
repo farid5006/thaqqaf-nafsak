@@ -70,7 +70,7 @@ def _parse_round_1_question(lines: List[str], idx: int, field: str):
         c_line = lines[idx]
         if any(kw in c_line for kw in ("الفقرة", "مجال:")) or c_line.startswith("["): break
         is_correct = "*" in c_line
-        clean_choice = re.sub(r"^([أ-ي0-9]+[\.\-\)]|\*)\s*", "", c_line).strip()
+        clean_choice = re.sub(r"^([أ-ي0-9]+[\.\-\)]|\*)\s*", "", c_line.replace("*", "")).strip()
         if is_correct: correct_idx = len(choices)
         choices.append(clean_choice); idx += 1
     correct_ans = choices[correct_idx] if choices and correct_idx < len(choices) else ""

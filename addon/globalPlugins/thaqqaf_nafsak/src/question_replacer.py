@@ -5,7 +5,8 @@ def find_and_swap_question(state: Any) -> bool:
     if not getattr(state, "current_question", None): return False
     field = state.current_question.get("field", "")
     asked = getattr(state, "asked_q_ids", [])
-    prohibited = set(asked) | {(q.get("id") or str(q.get("question"))) for _, q in getattr(state, "queue", [])}
+    used = getattr(state, "used_ids", set()) if getattr(state, "rep_pct", 0) < 100 else set()
+    prohibited = set(asked) | set(used) | {(q.get("id") or str(q.get("question"))) for _, q in getattr(state, "queue", [])}
     backup = None
 
     if state.phase == "round_1":

@@ -20,8 +20,10 @@ function setVolume(val) {
   masterGain.gain.value = v;
   const aCorr = document.getElementById('audio-correct') || correctAudio;
   const aWr = document.getElementById('audio-wrong') || wrongAudio;
+  const aRules = document.getElementById('audio-rules');
   if (aCorr) aCorr.volume = v;
   if (aWr) aWr.volume = v;
+  if (aRules) aRules.volume = v;
 }
 
 function playTone(freq, type, duration, delay = 0) {

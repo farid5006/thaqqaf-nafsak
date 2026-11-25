@@ -51,8 +51,10 @@ def validate_match_pool(pool: Dict[str, Any], used_ids: Optional[Set[str]] = Non
     r2 = active.get("round_2", {})
     r2_ready = [f for f, qs in r2.items() if len(qs) >= 7]
     def_r2 = [f"[{f}] (متاح {len(qs)} والمطلوب 7)" for f, qs in r2.items() if len(qs) < 7]
+    single_r2 = [f"[{f}] ({len(qs)} أسئلة - يكفي فريقاً واحداً فقط)" for f, qs in r2.items() if 7 <= len(qs) < 12]
     if len(r2_ready) < 2: errors.append(f"الفقرة الثانية (اختر مجالك): مطلوب مجالان مكتملان (بكل منهما 7 أسئلة غير مكررة)، المتاح {len(r2_ready)} مجالات فقط." + (f" - النقص في: {', '.join(def_r2)}" if def_r2 else ""))
     elif def_r2: errors.append(f"الفقرة الثانية (اختر مجالك): تنبيه بنقص في بعض المجالات: {', '.join(def_r2)}.")
+    if single_r2: warnings.append(f"الفقرة الثانية (تكرار المجال): المجالات التالية أقل من 12 سؤالاً فلا تكفي للفريقين معاً: {'، '.join(single_r2)}.")
     for f, qs in pool.get("round_2", {}).items():
         for q in qs:
             if not q.get("correct_answer"): errors.append(f"الفقرة الثانية ({f}): السؤال '{q.get('question', '')[:25]}' بدون إجابة.")

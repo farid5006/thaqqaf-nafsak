@@ -1,7 +1,7 @@
 {
   "project_name": "thaqqaf_nafsak",
   "display_name": "ثقف نفسك",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "author": "Farid Mohammed & Dr. Ibrahim",
   "description": "إضافة رسمية لـ NVDA لإدارة وتحكيم مسابقات المعلومات العامة للمكفوفين بواجهة ويب تفاعلية ميسرة وبنك أسئلة ومؤثرات صوتية للستيريو مكس",
   "target_platform": "NVDA 2024.1+ / 2026.x (Python 3.11+)",
